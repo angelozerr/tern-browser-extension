@@ -12,8 +12,12 @@ At first tern-browser-extension needs the accept of [this PR](https://github.com
 
 ![CodeMirror & GetElementById completion](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_GetElementByIdCompletions.png)
 
+ * go at the definition of the attribute id : 
+ 
+![CodeMirror & GetElementById definition](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_GetElementByIdDefinition.png)
+ 
  * validate element id if the editor supports [tern-lint](https://github.com/angelozerr/tern-lint) : 
 
-![CodeMirror & GetElementById completion](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_GetElementByIdValidation.png) 
+![CodeMirror & GetElementById validation](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_GetElementByIdValidation.png) 
 
  * returns the well HTML element instance (eg : HTMLInputElement) when getElementById or createElement is used.
