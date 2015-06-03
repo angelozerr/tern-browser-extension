@@ -1,60 +1,21 @@
-(function(mod) {
+(function(root, mod) {
     if (typeof exports == "object" && typeof module == "object") // CommonJS
-        return mod(require("tern/lib/infer"), require("tern/lib/tern"), require("acorn/dist/acorn"), require("sax"));
+      return mod(exports, require("tern/lib/infer"), require("tern/lib/tern"),
+          require("acorn"), require("sax"));
     if (typeof define == "function" && define.amd) // AMD
-        return define([ "tern/lib/infer", "tern/lib/tern", "acorn/dist/acorn", "sax" ], mod);
-    mod(tern, tern, acorn, sax);
-})(function(infer, tern, acorn, sax) {
+        return define(["exports", "tern/lib/infer", "tern/lib/tern", "acorn/dist/acorn", "sax" ], mod);
+    mod(root, tern, tern, acorn, sax);
+})(this, function(exports, infer, tern, acorn, sax) {
     "use strict";
       
+  var defaultRules = {
+      "UnknownElementId" : {"severity" : "warning"}
+  };
+  
+  // DOM Document
+    
   function isScriptTag(tagName) {
     return tagName.toLowerCase() == "script";
-  }
-  
-  function DOM(file, xml) {
-    this.xml = xml;
-    var ids = this.ids = {};
-    var newxml = "", scriptParsing = false, from = 0, to = xml.length, 
-    parser = sax.parser(true);
-    parser.onopentag = function (node) {
-      if (isScriptTag(node.name)) {
-        scriptParsing = true;
-        to = this.position;          
-        newxml = newxml + spaces(xml, from, to);
-        from = to;
-        to = xml.length;        
-      }
-    };
-    parser.onclosetag = function (tagName) {
-      if (isScriptTag(tagName)) {
-        scriptParsing = false;
-        to = this.position;
-        var endElement = "</" + tagName + ">";
-        newxml = newxml + xml.substring(from, to  - endElement.length);
-        newxml = newxml + spaces(endElement, 0, endElement.length);
-        from = to;
-        to = xml.length;
-      }
-    };
-    parser.onattribute = function (attr) {
-      if (attr.name.toLowerCase() == "id") {
-        var originNode = new acorn.Node();
-        originNode.start = this.position - attr.value.length - 1;
-        originNode.end = this.position - 1;
-        originNode.sourceFile = file;
-        ids[attr.value] = {"originNode": originNode, "ownerElement": this.tagName};
-      }
-    };
-    parser.write(xml);
-    if (from != to) {
-      if (scriptParsing) {
-        newxml = newxml + xml.substring(from, to);
-      } else {
-        newxml = newxml + spaces(from, to);
-      }
-    }
-    this.scripts = newxml;
-    
   }
   
   function spaces(text, from, to) {
@@ -74,13 +35,62 @@
     return spaces;
   }
   
-  function isHTML(file) {
-    var endsWith = function(str, suffix) {
-      return str.slice(-suffix.length) == suffix;
+  var DOMDocument = exports.DOMDocument= function(xml, file) {
+    var ids = this.ids = {};
+    var scripts = "", scriptParsing = false, from = 0, to = xml.length, 
+    parser = sax.parser(true);
+    parser.onopentag = function (node) {
+      if (isScriptTag(node.name)) {
+        scriptParsing = true;
+        to = this.position;          
+        scripts = scripts + spaces(xml, from, to);
+        from = to;
+        to = xml.length;        
+      }
+    };
+    parser.onclosetag = function (tagName) {
+      if (isScriptTag(tagName)) {
+        scriptParsing = false;
+        to = this.position;
+        var endElement = "</" + tagName + ">";
+        scripts = scripts + xml.substring(from, to  - endElement.length);
+        scripts = scripts + spaces(endElement, 0, endElement.length);
+        from = to;
+        to = xml.length;
+      }
+    };
+    parser.onattribute = function (attr) {
+      if (attr.name.toLowerCase() == "id") {
+        var originNode = new acorn.Node();
+        originNode.start = this.position - attr.value.length - 1;
+        originNode.end = this.position - 1;
+        originNode.sourceFile = file;
+        originNode.ownerElement = this.tagName;
+        ids[attr.value] = originNode;
+      }
+    };
+    parser.write(xml);
+    if (from != to) {
+      if (scriptParsing) {
+        scripts = scripts + xml.substring(from, to);
+      } else {
+        scripts = scripts + spaces(xml, from, to);
+      }
     }
-    return file.name == "[doc]" || endsWith(file.name, ".html"); 
-  }
+    this.scripts = scripts;
     
+  }
+  
+  // Custom tern function
+  
+  function createElement(tagName) {
+    if (!tagName || tagName.length < 1) return new infer.Obj(infer.def.parsePath("HTMLElement.prototype"));
+    var cx = infer.cx(), server = cx.parent, name = 'HTML' + tagName.substring(0, 1).toUpperCase() + tagName.substring(1, tagName.length) + "Element", 
+        locals = infer.def.parsePath(name + ".prototype");
+    if (locals && locals != infer.ANull) return new infer.Obj(locals);    
+    return new infer.Obj(infer.def.parsePath("HTMLElement.prototype"));
+  }
+  
   infer.registerFunction("Browser_getElementById", function(_self, args, argNodes) {
     if (!argNodes || !argNodes.length || argNodes[0].type != "Literal" || typeof argNodes[0].value != "string" || !(argNodes[0].sourceFile && argNodes[0].sourceFile.dom))
       return new infer.Obj(cx.paths["HTMLElement.prototype"]);
@@ -91,46 +101,69 @@
     }
     return new infer.Obj(cx.paths["HTMLElement.prototype"]);
   });
-  
-  function createElement(tagName) {
-    if (!tagName || tagName.length < 1) return new infer.Obj(infer.def.parsePath("HTMLElement.prototype"));
-    var cx = infer.cx(), server = cx.parent, name = 'HTML' + tagName.substring(0, 1).toUpperCase() + tagName.substring(1, tagName.length) + "Element", 
-        locals = infer.def.parsePath(name + ".prototype");
-    if (locals && locals != infer.ANull) return new infer.Obj(locals);    
-    return new infer.Obj(infer.def.parsePath("HTMLElement.prototype"));
-  }
-  
+    
   infer.registerFunction("Browser_createElement", function(_self, args, argNodes) {
     if (!argNodes || !argNodes.length || argNodes[0].type != "Literal" || typeof argNodes[0].value != "string")
       return createElement();
     return createElement(argNodes[0].value);
   });
   
+  // Plugin
+  
   tern.registerPlugin("browser-extension", function(server, options) {
+    registerLints();
     return {passes: {
-             preParse: preParse,
              preLoadDef: preLoadDef,
+             preParse: preParse,             
              typeAt: findTypeAt,
              completion: findCompletions
            }};
   });
   
-  function preLoadDef(data) {
+  // Lint
+  
+  function registerLints() {
+    if (!tern.registerLint) return;
+
+    // validate document.getElementById
+    tern.registerLint("validateElementId", function(node, addMessage, getRule) {
+      var argNode = node.arguments[0];
+      if (argNode && !argNode.dom) {
+        addMessage(argNode, "Unknown element id '" + argNode.value + "'", defaultRules.UnknownElementId.severity);
+      }
+    });
+  }
+  
+  // Pre load def : implementation to override getElementById an dcreateElement !type
+  
+  function preLoadDef(data) {    
     var cx = infer.cx(), browser = cx.definitions[data["!name"]]["browser"];
     if (data["!name"] == "browser") {
       // Override Document#getElementById !type
       data["Document"]["prototype"]["getElementById"]["!type"] = "fn(id: string) -> !custom:Browser_getElementById";
+      data["Document"]["prototype"]["getElementById"]["!data"] = {"!lint": "validateElementId"};
       // Override Document#createElement !type
       data["Document"]["prototype"]["createElement"]["!type"] = "fn(tagName: string) -> !custom:Browser_createElement";
     }
   }
   
+  // Pre parse
+  
+  function isHTML(file) {
+    var endsWith = function(str, suffix) {
+      return str.slice(-suffix.length) == suffix;
+    }
+    return file.name == "[doc]" || endsWith(file.name, ".html"); 
+  }
+  
   function preParse(file, text) {
     if (!isHTML(file)) return;
-    var dom = file.dom = new DOM(file, text);          
+    var dom = file.dom = new DOMDocument(text, file);          
     return dom.scripts;
   }
 
+  // Find type at
+  
   function findTypeAt(_file, _pos, expr, type) {
     if (!expr) return type;
     var isStringLiteral = expr.node.type === "Literal" &&
@@ -142,13 +175,15 @@
       // We must create a copy before modifying `origin` and `originNode`.
       // Otherwise all string literals would point to the last jump location
       type = Object.create(type);
-      type.origin = expr.node.dom.originNode.sourceFile.name; 
-      type.originNode = expr.node.dom.originNode;
+      type.origin = expr.node.dom.sourceFile.name; 
+      type.originNode = expr.node.dom;
     }
 
     return type;
   }
 
+  // Find completion
+  
   function findCompletions(file, query) {
     var wordEnd = tern.resolvePos(file, query.end);
     var callExpr = infer.findExpressionAround(file.ast, null, wordEnd, file.scope, "CallExpression");

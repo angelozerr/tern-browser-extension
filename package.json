@@ -15,7 +15,8 @@
   "dependencies": {
     "tern": ">=0.10.0",
     "acorn": ">=1.0.0",
-    "sax": ">=1.1.1"
+    "sax": ">=1.1.1",
+    "tern-lint": "0.2.0"
   },
   "devDependencies": { 
     "test": ">=0.0.5" 

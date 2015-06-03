@@ -1,62 +1,134 @@
 "use strict";
 
-var fs = require("fs"), path = require("path"), tern = require("tern"), assert = require('assert');
-require("../lint.js");
+var fs = require("fs"), path = require("path"), assert = require('assert');
+//Use custom tern by waiting for accept of the PR
+//var infer = require("../demos/ternjs/tern/lib/infer.js");
+var tern = require("tern/lib/tern"); //require("../demos/ternjs/tern/lib/tern.js");
+require("../browser-extension.js");
 
 var projectDir = path.resolve(__dirname, "..");
 var resolve = function(pth) {
-  return path.resolve(projectDir, pth);
+    return path.resolve(projectDir, pth);
 };
 var browser = JSON.parse(fs
-    .readFileSync(resolve("node_modules/tern/defs/browser.json")), "utf8");
+        .readFileSync(resolve("node_modules/tern/defs/browser.json")), "utf8");
 var ecma5 = JSON.parse(fs
-    .readFileSync(resolve("node_modules/tern/defs/ecma5.json")), "utf8");
-var chrome_apps = JSON.parse(fs
-    .readFileSync(resolve("test/fixtures/chrome-apps.json")), "utf8");
-
+        .readFileSync(resolve("node_modules/tern/defs/ecma5.json")), "utf8");
+       
 var allDefs = {
-  browser : browser,
-  ecma5 : ecma5,
-  chrome_apps : chrome_apps
+    browser : browser,
+    ecma5 : ecma5
 };
 
-var createServer = exports.createServer = function(defNames, options) {
+var defaultQueryOptions = {
+  types: true,
+  docs: false,
+  urls: false,
+  origins: true
+}
+
+function createServer(defs, options) {
+    var plugins = {};
+    if (options) plugins['browser-extension'] = options; else plugins['browser-extension'] = {};
+    var server = new tern.Server({
+        plugins : plugins,
+        defs : defs
+    });
+    return server;
+}
+
+exports.assertCompletion = function(text, expected, name, substraction) {
+    var defs = [];
+    var defNames = ["ecma5", "browser"]; 
+    if (defNames) {
+        for (var i = 0; i < defNames.length; i++) {
+            var def = allDefs[defNames[i]];
+            defs.push(def);
+        }
+    }
+    var queryOptions = defaultQueryOptions;
+    if (!substraction) substraction = 0; 
+    var server = createServer(defs, {});
+    server.addFile("test1.html", text);
+    server.request({
+        query : {
+            type: "completions",
+            file: "test1.html",
+            end: text.length - substraction,
+            types: queryOptions.types,
+            docs: queryOptions.docs,
+            urls: queryOptions.urls,
+            origins: queryOptions.origins,
+            caseInsensitive: true,
+            lineCharPositions: true,
+            expandWordForward: false,
+            guess: false            
+        }
+    }, function(err, resp) {
+        if (err)
+            throw err;
+        var actualMessages = resp.messages;
+        var expectedMessages = expected.messages;
+
+        if(name) {
+          var actualItem = {};
+          var completions = resp["completions"];
+          if (completions) {
+                  completions.forEach(function(item) {
+                    if (item['name'] === name) actualItem = item;
+                  });
+          }
+          assert.equal(JSON.stringify(actualItem), JSON.stringify(expected));                           
+        } else {
+          assert.equal(JSON.stringify(resp), JSON.stringify(expected)); 
+        }
+    });
+}
+
+exports.assertCompletion = function(text, expected, name, substraction) {
   var defs = [];
+  var defNames = ["ecma5", "browser"]; 
   if (defNames) {
-    for (var i = 0; i < defNames.length; i++) {
-      var def = allDefs[defNames[i]];
-      defs.push(def);
-    }
+      for (var i = 0; i < defNames.length; i++) {
+          var def = allDefs[defNames[i]];
+          defs.push(def);
+      }
   }
-  var plugins = {};
-  if (options)
-    plugins['lint'] = options;
-  else
-    plugins['lint'] = {};
-  var server = new tern.Server({
-    plugins : plugins,
-    defs : defs
-  });
-  return server;
-}
-
-var assertLintReponse = exports.assertLintReponse = function(err, resp, expected) {
-  if (err)
-    throw err;
-  var actualMessages = resp.messages;
-  var expectedMessages = expected.messages;
-  assert.equal(JSON.stringify(resp), JSON.stringify(expected));
-}
-
-exports.assertLint = function(text, expected, defNames, options) {
-  var server = createServer(defNames, options);
-  server.addFile("test1.js", text);
+  var queryOptions = defaultQueryOptions;
+  if (!substraction) substraction = 0; 
+  var server = createServer(defs, {});
+  server.addFile("test1.html", text);
   server.request({
-    query : {
-      type : "lint",
-      file : "test1.js"
-    }
+      query : {
+          type: "completions",
+          file: "test1.html",
+          end: text.length - substraction,
+          types: queryOptions.types,
+          docs: queryOptions.docs,
+          urls: queryOptions.urls,
+          origins: queryOptions.origins,
+          caseInsensitive: true,
+          lineCharPositions: true,
+          expandWordForward: false,
+          guess: false            
+      }
   }, function(err, resp) {
-    assertLintReponse(err, resp, expected);
+      if (err)
+          throw err;
+      var actualMessages = resp.messages;
+      var expectedMessages = expected.messages;
+
+      if(name) {
+        var actualItem = {};
+        var completions = resp["completions"];
+        if (completions) {
+                completions.forEach(function(item) {
+                  if (item['name'] === name) actualItem = item;
+                });
+        }
+        assert.equal(JSON.stringify(actualItem), JSON.stringify(expected));                           
+      } else {
+        assert.equal(JSON.stringify(resp), JSON.stringify(expected)); 
+      }
   });
 }
