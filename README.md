@@ -10,7 +10,7 @@ At first tern-browser-extension needs the accept of [this PR](https://github.com
  * use tern inside HTML. The plugin extract JavaScript code from scripts elements before creating the acorn AST.
  * get completion for element ids when document.getElementById is used:
 
-![CodeMirror & GetElementById completion](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_GetElementByIdCompletion.png)
+![CodeMirror & GetElementById completion](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_GetElementByIdCompletions.png)
 
  * validate element id if the editor supports [tern-lint](https://github.com/angelozerr/tern-lint) : 
 
