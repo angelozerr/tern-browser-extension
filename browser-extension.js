@@ -156,7 +156,8 @@
     return file.name == "[doc]" || endsWith(file.name, ".html"); 
   }
   
-  function preParse(file, text) {
+  function preParse(text, options) {
+    var file = options.directSourceFile;
     if (!isHTML(file)) return;
     var dom = file.dom = new DOMDocument(text, file);          
     return dom.scripts;
