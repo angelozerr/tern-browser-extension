@@ -16,4 +16,10 @@ exports['test extract several scripts'] = function() {
   assert.equal(scripts, "      \n        \nvar a = [];         \n        \nvar b = [];         \n       ");
 }
 
+exports['test extract onevent scripts'] = function() {
+  var document = new browser.DOMDocument("<html>\n<div id='MyId' onclick='f()' onmousedown='f()' ></div><script>\nfunction f() {};</script></html>");
+  var scripts = document.scripts;
+  assert.equal(scripts, "      \n        \nvar a = [];         \n        \nvar b = [];         \n       ");
+}
+
 if (module == require.main) require('test').run(exports)
