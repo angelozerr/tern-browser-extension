@@ -152,7 +152,7 @@
   // Pre load def : implementation to override getElementById an dcreateElement !type
   
   function preLoadDef(data) {    
-    var cx = infer.cx(), browser = cx.definitions[data["!name"]]["browser"];
+    var cx = infer.cx();
     if (data["!name"] == "browser") {
       // Override Document#getElementById !type
       data["Document"]["prototype"]["getElementById"]["!type"] = "fn(id: string) -> !custom:Browser_getElementById";
