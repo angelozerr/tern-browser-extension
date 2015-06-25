@@ -8,7 +8,7 @@ exports['test getElementById completion'] = function() {
     "end":{"line":0,"ch":62},
     "isProperty":false,
     "isObjectKey":false,
-    "completions":[{"name":"'MyInput'","displayName":"MyInput"}
+    "completions":[{"name":"'MyInput'","type": "Attr", "origin": "test1.html", "displayName":"MyInput"}
                   ]
   }, null, 1);
 }
