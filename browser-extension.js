@@ -7,7 +7,16 @@
     mod(root, tern, tern, acorn, sax);
 })(this, function(exports, infer, tern, acorn, sax) {
     "use strict";
-      
+  
+  var htmlExtensions = {
+    "htm": true,
+    "html": true,
+    "xhtml": true,
+    "jsp": true,
+    "jsf": true,
+    "php": true
+  }
+  
   var defaultRules = {
       "UnknownElementId" : {"severity" : "warning"}
   };
@@ -108,19 +117,27 @@
   
   infer.registerFunction("Browser_getElementById", function(_self, args, argNodes) {
     if (!argNodes || !argNodes.length || argNodes[0].type != "Literal" || typeof argNodes[0].value != "string" || !(argNodes[0].sourceFile && argNodes[0].sourceFile.dom))
-      return new infer.Obj(cx.paths["HTMLElement.prototype"]);
+      return new infer.Obj(infer.def.parsePath["HTMLElement.prototype"]);
     var cx = infer.cx(), id = argNodes[0].value, dom = argNodes[0].sourceFile.dom, attr = dom.ids[id];
+    argNodes[0].elementId = true;
     if (attr) {
       argNodes[0].dom = attr;
       return createElement(attr.ownerElement);
     }
-    return new infer.Obj(cx.paths["HTMLElement.prototype"]);
+    return new infer.Obj(infer.def.parsePath["HTMLElement.prototype"]);
   });
     
   infer.registerFunction("Browser_createElement", function(_self, args, argNodes) {
     if (!argNodes || !argNodes.length || argNodes[0].type != "Literal" || typeof argNodes[0].value != "string")
       return createElement();
     return createElement(argNodes[0].value);
+  });
+  
+  infer.registerFunction("Browser_querySelector", function(_self, args, argNodes) {
+    if (!argNodes || !argNodes.length || argNodes[0].type != "Literal" || typeof argNodes[0].value != "string" || !(argNodes[0].sourceFile && argNodes[0].sourceFile.dom)) {
+      return
+    }    
+    argNodes[0].cssselectors = true;
   });
   
   // Plugin
@@ -141,7 +158,7 @@
     if (!tern.registerLint) return;
 
     // validate document.getElementById
-    tern.registerLint("validateElementId", function(node, addMessage, getRule) {
+    tern.registerLint("Browser_validateElementId", function(node, addMessage, getRule) {
       var argNode = node.arguments[0];
       if (argNode && !argNode.dom) {
         addMessage(argNode, "Unknown element id '" + argNode.value + "'", defaultRules.UnknownElementId.severity);
@@ -155,20 +172,22 @@
     var cx = infer.cx();
     if (data["!name"] == "browser") {
       // Override Document#getElementById !type
-      data["Document"]["prototype"]["getElementById"]["!type"] = "fn(id: string) -> !custom:Browser_getElementById";
-      data["Document"]["prototype"]["getElementById"]["!data"] = {"!lint": "validateElementId"};
+      var getElementById = data["Document"]["prototype"]["getElementById"];
+      getElementById["!type"] = "fn(id: string) -> !custom:Browser_getElementById";
+      getElementById["!data"] = {"!lint": "Browser_validateElementId"};
       // Override Document#createElement !type
-      data["Document"]["prototype"]["createElement"]["!type"] = "fn(tagName: string) -> !custom:Browser_createElement";
+      var createElement = data["Document"]["prototype"]["createElement"];
+      createElement["!type"] = "fn(tagName: string) -> !custom:Browser_createElement";      
     }
   }
   
   // Pre parse
   
   function isHTML(file) {
-    var endsWith = function(str, suffix) {
-      return str.slice(-suffix.length) == suffix;
-    }
-    return file.name == "[doc]" || endsWith(file.name, ".html"); 
+    var name = file.name; 
+    if (name == "[doc]") return true;
+    var index = name.lastIndexOf(".");
+    return index != -1 && htmlExtensions[name.substring(index + 1, name.length)] == true;
   }
   
   function preParse(text, options) {
@@ -205,12 +224,12 @@
     var callExpr = infer.findExpressionAround(file.ast, null, wordEnd, file.scope, "CallExpression");
     if (!callExpr) return;
     var callNode = callExpr.node;
-    if (!callNode.callee.object || callNode.callee.object.name != "document" ||
-        callNode.callee.type != "MemberExpression" || !callNode.callee.property || callNode.callee.property.name != "getElementById" ||
+    if (!callNode.callee.object || /* callNode.callee.object.name != "document" ||*/
+        callNode.callee.type != "MemberExpression" || !callNode.callee.property || /* callNode.callee.property.name != "getElementById" ||*/
         callNode.arguments.length < 1) return;
     // here completion for document.getElementById('Ctrl+Space'
     var argNode = findAttrValue(callNode.arguments, wordEnd);
-    if (!argNode) return;
+    if (!argNode || (!argNode.elementId)) return;
     var word = argNode.raw.slice(1, wordEnd - argNode.start), quote = argNode.raw.charAt(0);
     if (word && word.charAt(word.length - 1) == quote)
       word = word.slice(0, word.length - 1);
