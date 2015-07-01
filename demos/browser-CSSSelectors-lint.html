@@ -21,7 +21,6 @@
     <script src="codemirror/addon/lint/lint.js"></script>
     <link rel="stylesheet" href="codemirror/addon/lint/lint.css">
 
-
 <script>
 var defs = [];
 CodeMirror.tern = {};
@@ -34,7 +33,7 @@ CodeMirror.tern.addDef = function(def) {
         
   <!-- Tern JS -->
   <script src="../node_modules/acorn/dist/acorn.js"></script>
-  <script src="	../node_modules/acorn/dist/acorn_loose.js"></script>
+  <script src="../node_modules/acorn/dist/acorn_loose.js"></script>
   <script src="../node_modules/acorn/dist/walk.js"></script>
   <script src="../node_modules/tern/lib/signal.js"></script>
   <script src="../node_modules/tern/lib/tern.js"></script>
@@ -58,6 +57,7 @@ CodeMirror.tern.addDef = function(def) {
 
 <!--  Tern Browser Extension -->
   <script src="../node_modules/sax/lib/sax.js"></script>
+  <script src="csslint/csslint.js"></script>
   <script src="../browser-extension.js"></script>
   
     
@@ -84,8 +84,7 @@ CodeMirror.tern.addDef = function(def) {
 
 	<div id="A"></div>
 	<script>
-		document.getElementById('A');
-		document.getElementById('B');
+		document.querySelector("a[")
 	</script>
 
 </html>

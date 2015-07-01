@@ -19,14 +19,14 @@
     <script src="codemirror/mode/javascript/javascript.js"></script>    
 
   <!-- Tern JS -->
-  <script src="ternjs/acorn/dist/acorn.js"></script>
-  <script src="ternjs/acorn/dist/acorn_loose.js"></script>
-  <script src="ternjs/acorn/dist/walk.js"></script>
-  <script src="ternjs/tern/lib/signal.js"></script>
-  <script src="ternjs/tern/lib/tern.js"></script>
-  <script src="ternjs/tern/lib/def.js"></script>
-  <script src="ternjs/tern/lib/comment.js"></script>
-  <script src="ternjs/tern/lib/infer.js"></script>
+  <script src="../node_modules/acorn/dist/acorn.js"></script>
+  <script src="../node_modules/acorn/dist/acorn_loose.js"></script>
+  <script src="../node_modules/acorn/dist/walk.js"></script>
+  <script src="../node_modules/tern/lib/signal.js"></script>
+  <script src="../node_modules/tern/lib/tern.js"></script>
+  <script src="../node_modules/tern/lib/def.js"></script>
+  <script src="../node_modules/tern/lib/comment.js"></script>
+  <script src="../node_modules/tern/lib/infer.js"></script>
   
   <script src="../node_modules/sax/lib/sax.js"></script>
   <script src="../browser-extension.js"></script>
@@ -72,13 +72,7 @@
 		<script>
 		    // test with createElement
 			var input = document.createElement('input');
-			input.s // here Ctrl+Space shows "select()" which is a method of HTMLInputElement
-			        // do Ctrl+I on the input variable to see doc about HTMLInputElement
-			
-			// test with getElementById
-			document.getElementById(' // here Ctrl+Space shows MyId, MyId2 elements ids'
-			var myinput = document.getElementById('MyInput');
-          	myinput. // here Ctrl+Space shows "select()" which is a method of HTMLInputElement
+			input.querySelector("body #");
 		</script>
 	</body>
 

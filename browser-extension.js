@@ -1,11 +1,11 @@
 (function(root, mod) {
     if (typeof exports == "object" && typeof module == "object") // CommonJS
       return mod(exports, require("tern/lib/infer"), require("tern/lib/tern"),
-          require("acorn"), require("sax"));
+          require("acorn"), require("sax"), require("csslint-node").CSSLint);
     if (typeof define == "function" && define.amd) // AMD
         return define(["exports", "tern/lib/infer", "tern/lib/tern", "acorn/dist/acorn", "sax" ], mod);
-    mod(root, tern, tern, acorn, sax);
-})(this, function(exports, infer, tern, acorn, sax) {
+    mod(root, tern, tern, acorn, sax, root.CSSLint ? root.CSSLint : null);
+})(this, function(exports, infer, tern, acorn, sax, CSSLint) {
     "use strict";
   
   var htmlExtensions = {
@@ -164,6 +164,26 @@
         addMessage(argNode, "Unknown element id '" + argNode.value + "'", defaultRules.UnknownElementId.severity);
       }
     });
+    
+    // validate Element#querySelector/Element#queryAllSelector
+    tern.registerLint("Browser_validateCSSSelectors", function(node, addMessage, getRule) {
+      var argNode = node.arguments[0];
+      if (!argNode || argNode.type != "Literal" || typeof argNode.value != "string") {       
+        return;
+      }
+      if (!CSSLint) return;
+      var rule = getRule("InvalidArgument");
+      if (!rule) return;
+      var result = CSSLint.verify(argNode.value + "{}", { ids: 0});
+      if (result && result.messages.length > 0) {
+        for (var i = 0; i < result.messages.length; i++) {
+          var message = result.messages[i], startCol = message.col -1, endCol = message.col;
+          var n = {start: argNode.start + startCol, end: argNode.start + endCol}
+          addMessage(n, "Invalid CSS selectors '" + argNode.value + "': " + message.message, rule.severity, startCol, endCol);          
+        }
+      }
+    });
+    
   }
   
   // Pre load def : implementation to override getElementById an dcreateElement !type
@@ -177,7 +197,15 @@
       getElementById["!data"] = {"!lint": "Browser_validateElementId"};
       // Override Document#createElement !type
       var createElement = data["Document"]["prototype"]["createElement"];
-      createElement["!type"] = "fn(tagName: string) -> !custom:Browser_createElement";      
+      createElement["!type"] = "fn(tagName: string) -> !custom:Browser_createElement";
+      // Add Element#querySelector !effects
+      var querySelector = data["Element"]["prototype"]["querySelector"];
+      querySelector["!effects"] = ["custom Browser_querySelector"];
+      querySelector["!data"] =  {"!lint": "Browser_validateCSSSelectors"};
+      // Add Element#querySelector !effects
+      var querySelectorAll = data["Element"]["prototype"]["querySelectorAll"];
+      querySelectorAll["!effects"] = ["custom Browser_querySelector"];
+      querySelectorAll["!data"] =  {"!lint": "Browser_validateCSSSelectors"};        
     }
   }
   
