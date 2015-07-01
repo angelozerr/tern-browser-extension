@@ -18,7 +18,7 @@
   }
   
   var defaultRules = {
-      "UnknownElementId" : {"severity" : "warning"}
+    "UnknownElementId" : {"severity" : "warning"}
   };
   
   var startsWith = function (s, searchString, position) {
@@ -112,19 +112,19 @@
     var cx = infer.cx(), server = cx.parent, name = 'HTML' + tagName.substring(0, 1).toUpperCase() + tagName.substring(1, tagName.length) + "Element", 
         locals = infer.def.parsePath(name + ".prototype");
     if (locals && locals != infer.ANull) return new infer.Obj(locals);    
-    return new infer.Obj(infer.def.parsePath("HTMLElement.prototype"));
+    return createElement();
   }
   
   infer.registerFunction("Browser_getElementById", function(_self, args, argNodes) {
     if (!argNodes || !argNodes.length || argNodes[0].type != "Literal" || typeof argNodes[0].value != "string" || !(argNodes[0].sourceFile && argNodes[0].sourceFile.dom))
-      return new infer.Obj(infer.def.parsePath["HTMLElement.prototype"]);
+      return createElement();
     var cx = infer.cx(), id = argNodes[0].value, dom = argNodes[0].sourceFile.dom, attr = dom.ids[id];
     argNodes[0].elementId = true;
     if (attr) {
       argNodes[0].dom = attr;
       return createElement(attr.ownerElement);
     }
-    return new infer.Obj(infer.def.parsePath["HTMLElement.prototype"]);
+    return createElement();
   });
     
   infer.registerFunction("Browser_createElement", function(_self, args, argNodes) {
@@ -293,4 +293,4 @@
     return completions;
   }
   
-})  
+})
