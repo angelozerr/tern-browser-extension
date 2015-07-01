@@ -1,7 +1,7 @@
 (function(root, mod) {
     if (typeof exports == "object" && typeof module == "object") // CommonJS
       return mod(exports, require("tern/lib/infer"), require("tern/lib/tern"),
-          require("acorn"), require("sax"), require("csslint-node").CSSLint);
+          require("acorn"), require("sax"), require("csslint").CSSLint);
     if (typeof define == "function" && define.amd) // AMD
         return define(["exports", "tern/lib/infer", "tern/lib/tern", "acorn/dist/acorn", "sax" ], mod);
     mod(root, tern, tern, acorn, sax, root.CSSLint ? root.CSSLint : null);
