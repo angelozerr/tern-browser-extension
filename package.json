@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "main": "browser-extension.js",
   "author": "Angelo ZERR <angelo.zerr@gmail.com>",
-  "description": "A Tern plugin adding advanced features for Brower.",
+  "description": "A Tern plugin adding advanced features for Browser.",
   "repository": {
     "type": "git",
     "url": "git://github.com/angelozerr/tern-browser-extension.git"
@@ -17,7 +17,7 @@
     "acorn": ">=1.0.1",
     "sax": ">=1.1.1",
     "csslint": "0.10.0",
-    "tern-lint": "0.2.0"
+    "tern-lint": "0.3.0"
   },
   "devDependencies": { 
     "test": ">=0.0.5" 
