@@ -263,11 +263,12 @@
       wordStart = argNode.start;
       if (text.charAt(0) == quote) wordStart++;
     } else {
-      while (wordStart && (acorn.isIdentifierChar(text.charCodeAt(wordStart - 1)))) --wordStart;
-      if (query.expandWordForward !== false)
-        while (wordEnd < text.length && acorn.isIdentifierChar(text.charCodeAt(wordEnd))) ++wordEnd;
+      var i = text.length - 1;
+      while (i > 0 && (acorn.isIdentifierChar(text.charCodeAt(--i)))) --wordStart;
+      //if (query.expandWordForward !== false)
+      //  while (wordEnd < file.text.length && acorn.isIdentifierChar(text.charCodeAt(wordEnd - wordStart))) ++wordEnd;
     }
-    var word = text.slice(1, wordEnd - wordStart);
+    var word = text.slice(1, wordEnd - wordStart + 1);
     if (word && word.charAt(word.length - 1) == quote)
       word = word.slice(0, word.length - 1);
     
@@ -284,6 +285,7 @@
         var name = typeof rec == "string" ? rec : rec.name;
         if (typeof rec == "string") return name + quote;
         rec.name = name + quote;
+        rec.displayName = name;
         return rec;
       })
     };
