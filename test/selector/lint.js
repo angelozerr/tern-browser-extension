@@ -22,7 +22,12 @@ exports['test querySelector #ID exist validation'] = function() {
 
   // Unknown XXXX element id
   util.assertLint("<html><input id='MyInput' /><script>document.querySelector('#XXXX');</script>", {
-          messages : []
+          messages : [{"message":"Unknown element id '#XXXX'",
+                       "from":60,
+                       "to":65,
+                       "severity":
+                       "warning",
+                       "file":"test1.html"}]
   }, ["browser"]);
 
   // known element id
