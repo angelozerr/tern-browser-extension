@@ -2,7 +2,7 @@
 
 var tern = require("tern/lib/tern"), 
     assert = require('assert'), 
-    browser = require("../browser-extension");
+    browser = require("../../browser-extension");
 
 exports['test elements ids'] = function() {
   var document = new browser.DOMDocument("<html><div id='MyId' /></html>");

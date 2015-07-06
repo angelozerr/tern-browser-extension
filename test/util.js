@@ -1,9 +1,7 @@
 "use strict";
 
 var fs = require("fs"), path = require("path"), assert = require('assert');
-//Use custom tern by waiting for accept of the PR
-//var infer = require("../demos/ternjs/tern/lib/infer.js");
-var tern = require("tern/lib/tern"); //require("../demos/ternjs/tern/lib/tern.js");
+var tern = require("tern/lib/tern");
 require("../browser-extension.js");
 
 var projectDir = path.resolve(__dirname, "..");
@@ -111,6 +109,47 @@ exports.assertCompletion = function(text, expected, name, substraction) {
           lineCharPositions: true,
           expandWordForward: false,
           guess: false            
+      }
+  }, function(err, resp) {
+      if (err)
+          throw err;
+      var actualMessages = resp.messages;
+      var expectedMessages = expected.messages;
+
+      if(name) {
+        var actualItem = {};
+        var completions = resp["completions"];
+        if (completions) {
+                completions.forEach(function(item) {
+                  if (item['name'] === name) actualItem = item;
+                });
+        }
+        assert.equal(JSON.stringify(actualItem), JSON.stringify(expected));                           
+      } else {
+        assert.equal(JSON.stringify(resp), JSON.stringify(expected)); 
+      }
+  });
+}
+
+exports.assertDefinition = function(text, expected, name, substraction) {
+  var defs = [];
+  var defNames = ["ecma5", "browser"]; 
+  if (defNames) {
+      for (var i = 0; i < defNames.length; i++) {
+          var def = allDefs[defNames[i]];
+          defs.push(def);
+      }
+  }
+  var queryOptions = defaultQueryOptions;
+  if (!substraction) substraction = 0; 
+  var server = createServer(defs, {});
+  server.addFile("test1.html", text);
+  server.request({
+      query : {
+          type: "definition",
+          file: "test1.html",
+          end: text.length - substraction,
+          lineCharPositions: true
       }
   }, function(err, resp) {
       if (err)

@@ -2,7 +2,7 @@
 
 var tern = require("tern/lib/tern"), 
     assert = require('assert'), 
-    browser = require("../browser-extension");
+    browser = require("../../browser-extension");
 
 exports['test extract one script'] = function() {
   var document = new browser.DOMDocument("<html>\n<script>\nvar a = [];</script>\n</html>");
