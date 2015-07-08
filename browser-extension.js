@@ -331,26 +331,32 @@
     var callExpr = infer.findExpressionAround(file.ast, null, wordStart, file.scope, "CallExpression");
     if (!callExpr) return;
     var callNode = callExpr.node;
-    if (!callNode.callee.object || callNode.callee.type != "MemberExpression" 
-        || !callNode.callee.property || callNode.arguments.length < 1) return;
+    if (!callNode.callee || callNode.arguments.length < 1) return;
 
     var argNode = findAttrValue(callNode.arguments, wordStart), completionType = getCompletionType(argNode)
     if (!completionType) return;
 
-    var text = argNode.raw, quote = text.charAt(0), before = "";
+    var fileText = file.text, text = argNode.raw, quote = text.charAt(0);
     if (!completionType.expr) {
-      wordStart = argNode.start;
+      wordStart = argNode.start + 1;
+      wordEnd = argNode.end - 1;
       //if (text.charAt(0) == quote) wordStart++;
     } else {
-      var i = text.length - 1;
-      while (i > 0 && (acorn.isIdentifierChar(text.charCodeAt(--i)))) --wordStart;
+      while (wordStart && acorn.isIdentifierChar(fileText.charCodeAt(wordStart - 1))) --wordStart;
+      if (query.expandWordForward !== false)
+        while (wordEnd < fileText.length && acorn.isIdentifierChar(fileText.charCodeAt(wordEnd))) ++wordEnd;
+      
+      /*var i = fileText.length - 1;
+      while (i > 0 && (acorn.isIdentifierChar(fileText.charCodeAt(--i)))) --wordStart;
       before = text.slice(1, i + 1);
       if (query.expandWordForward !== false)
-        while (wordEnd < file.text.length && acorn.isIdentifierChar(text.charCodeAt(wordEnd - wordStart))) ++wordEnd;
+        while (wordEnd < file.text.length && acorn.isIdentifierChar(file.text.charCodeAt(wordEnd - wordStart))) ++wordEnd;*/
     }
-    var word = text.slice(1, wordEnd - wordStart + (completionType.expr ? 1 : 0));
-    if (word && word.charAt(word.length - 1) == quote)
-      word = word.slice(0, word.length - 1);
+    var word = fileText.slice(wordStart, wordEnd), 
+        before = fileText.slice(argNode.start + 1, wordStart), after = fileText.slice(wordEnd, argNode.end - 1);
+    //var word = text.slice(1, wordEnd - wordStart + (completionType.expr ? 1 : 0));
+    if (after && after.charAt(word.length - 1) == quote)
+      after = after.slice(0, word.length - 1);
     
     var completions = [];
     completionType.complete(completions, query, file, word, wordStart);
@@ -358,12 +364,12 @@
       ++wordEnd;
     return {
       start: tern.outputPos(query, file, argNode.start),
-      end: tern.outputPos(query, file, wordEnd),
+      end: tern.outputPos(query, file, argNode.end),
       isProperty: false,
       isObjectKey: false,
       completions: completions.map(function(rec) {
         var name = typeof rec == "string" ? rec : rec.name;
-        var string = JSON.stringify(before + name);
+        var string = JSON.stringify(before + name + after);
         if (quote == "'") string = quote + string.slice(1, string.length -1).replace(/'/g, "\\'") + quote;
         if (typeof rec == "string") return string;
         if (!rec.displayName) rec.displayName = name;
