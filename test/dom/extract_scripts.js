@@ -22,4 +22,10 @@ exports['test extract onevent scripts'] = function() {
   assert.equal(scripts, "      \n                        f()               f()                 \nfunction f() {};                ");
 }
 
+exports['test extract custom script tag'] = function() {
+  var document = new browser.DOMDocument("<html>\n<aui:script>\nvar a = [];</aui:script>\n<script>\nvar b = [];</script>\n</html>", null, ["script", "aui:script"]);
+  var scripts = document.scripts;
+  assert.equal(scripts, "      \n            \nvar a = [];             \n        \nvar b = [];         \n       ");
+}
+
 if (module == require.main) require('test').run(exports)
