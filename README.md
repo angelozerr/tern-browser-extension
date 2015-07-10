@@ -27,7 +27,7 @@ Use tern inside HTML. The plugin extracts JavaScript code from scripts elements 
  
 ## CSS Selector
 
- * get completion for CSS ID selector when document.q is used:
+ * get completion for CSS ID selector when document.querySelector is used:
 
 ![CodeMirror & QuerySelector completion](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_QuerySelectorCompletions.png)
 
