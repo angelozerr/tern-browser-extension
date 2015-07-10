@@ -5,7 +5,12 @@
 
 [tern-browser-extension](https://github.com/angelozerr/tern-browser-extension) is a tern plugin which extends [browser.json](https://github.com/marijnh/tern/blob/master/defs/browser.json) and provides the following features : 
 
- * use tern inside HTML. The plugin extracts JavaScript code from scripts elements before creating the acorn AST.
+## Use tern inside HTML
+
+Use tern inside HTML. The plugin extracts JavaScript code from scripts elements before creating the acorn AST.
+
+## Element ID
+
  * get completion for element ids when document.getElementById is used:
 
 ![CodeMirror & GetElementById completion](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_GetElementByIdCompletions.png)
@@ -19,3 +24,14 @@
 ![CodeMirror & GetElementById validation](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_GetElementByIdValidation.png) 
 
  * returns the well HTML element instance (eg : HTMLInputElement) when getElementById or createElement is used.
+ 
+## CSS Selector
+
+ * get completion for CSS ID selector when document.q is used:
+
+![CodeMirror & QuerySelector completion](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_QuerySelectorCompletions.png)
+
+* validate syntax of CSS selector if the editor supports [tern-lint](https://github.com/angelozerr/tern-lint) : 
+
+![CodeMirror & QuerySelector validation](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_QuerySelectorValidation.png) 
+
