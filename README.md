@@ -8,6 +8,7 @@
 ## Use tern inside HTML
 
 Use tern inside HTML. The plugin extracts JavaScript code from scripts elements before creating the acorn AST.
+The plugin also resolves script tags with the `src` attribute and [HTML Imports](https://w3c.github.io/webcomponents/spec/imports/).
 
 ## Element ID
 

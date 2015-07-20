@@ -25,7 +25,20 @@
     position = position || 0;
     return s.indexOf(searchString, position) === position;
   };
-  
+
+  function resolvePath(from, to) {
+    var parts = from.split(/[\\/]/);
+    parts.pop();
+    parts = parts.concat(to.split(/[\\/]/));
+    for (var i = 1; i < parts.length; i++) {
+      if (parts[i] == '..') {
+        parts.splice(i - 1, 2);
+        i -= 2;
+      }
+    }
+    return parts.join('/');
+  }
+
   // DOM Document
     
   function isScriptTag(tagName, scriptTags) {
@@ -56,18 +69,26 @@
     return spaces;
   }
   
-  var DOMDocument = exports.DOMDocument= function(xml, file, scriptTags) {
+  var DOMDocument = exports.DOMDocument= function(xml, file, scriptTags, server) {
     if (!scriptTags) scriptTags = ["script"];
     var ids = this.ids = {};
     var scripts = "", scriptParsing = false, from = 0, to = xml.length, 
     parser = sax.parser(true);
     parser.onopentag = function (node) {
       if (isScriptTag(node.name, scriptTags)) {
+        if (node.attributes.src != undefined) {
+          server.addFile(resolvePath(file.name, node.attributes.src), null, file.name);
+          return;
+        }
         scriptParsing = true;
         to = this.position;          
         scripts = scripts + spaces(xml, from, to);
         from = to;
         to = xml.length;        
+      } else if (node.name.toLowerCase() == 'link') {
+        if (node.attributes.rel == 'import' && node.attributes.href != undefined) {
+          server.addFile(resolvePath(file.name, node.attributes.href), null, file.name);
+        }
       }
     };
     parser.onclosetag = function (tagName) {
@@ -297,7 +318,7 @@
     var file = options.directSourceFile;
     if (!isHTML(file)) return;
     var cx = infer.cx(), server = cx.parent, scriptTags = server._browserExtension.scriptTags;
-    var dom = file.dom = new DOMDocument(text, file, scriptTags);          
+    var dom = file.dom = new DOMDocument(text, file, scriptTags, server);          
     return dom.scripts;
   }
 
