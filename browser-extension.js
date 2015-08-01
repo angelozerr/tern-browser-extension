@@ -27,6 +27,8 @@
   };
 
   function resolvePath(from, to) {
+    if (to[0] === '/')
+      return to.slice(1);
     var parts = from.split(/[\\/]/);
     parts.pop();
     parts = parts.concat(to.split(/[\\/]/));
