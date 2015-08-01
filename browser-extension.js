@@ -71,12 +71,13 @@
   
   var DOMDocument = exports.DOMDocument= function(xml, file, scriptTags, server) {
     if (!scriptTags) scriptTags = ["script"];
+    var resolveFiles = server !== undefined && server._browserExtension.resolveFiles;
     var ids = this.ids = {};
     var scripts = "", scriptParsing = false, from = 0, to = xml.length, 
     parser = sax.parser(true);
     parser.onopentag = function (node) {
       if (isScriptTag(node.name, scriptTags)) {
-        if (node.attributes.src != undefined) {
+        if (resolveFiles && node.attributes.src != undefined) {
           server.addFile(resolvePath(file.name, node.attributes.src), null, file.name);
           return;
         }
@@ -86,7 +87,7 @@
         from = to;
         to = xml.length;        
       } else if (node.name.toLowerCase() == 'link') {
-        if (node.attributes.rel == 'import' && node.attributes.href != undefined) {
+        if (resolveFiles && node.attributes.rel == 'import' && node.attributes.href != undefined) {
           server.addFile(resolvePath(file.name, node.attributes.href), null, file.name);
         }
       }
@@ -175,7 +176,8 @@
   
   tern.registerPlugin("browser-extension", function(server, options) {
     server._browserExtension = {
-        scriptTags: (options && options.scriptTags) ? options.scriptTags : ["script"]  
+        scriptTags: (options && options.scriptTags) ? options.scriptTags : ["script"],
+        resolveFiles: options.resolveFiles || true
     };
     registerLints();    
     return {passes: {
