@@ -74,15 +74,18 @@
   var dummyAcornParser = {options: {}}
 
   var DOMDocument = exports.DOMDocument = function (xml, file, scriptTags, server) {
+    var addFile = server !== undefined ? function (path, parentPath) {
+      if (!server._browserExtension.resolveFiles || !server._browserExtension.fileExists(path)) return
+      server.addFile(path, null, parentPath)
+    } : function(_, __) { }
     if (!scriptTags) scriptTags = ['script']
-    var resolveFiles = server !== undefined && server._browserExtension.resolveFiles
     var ids = this.ids = {}
     var scripts = '', scriptParsing = false, from = 0, to = xml.length,
       parser = sax.parser(true)
     parser.onopentag = function (node) {
       if (isScriptTag(node.name, scriptTags)) {
-        if (resolveFiles && node.attributes.src != undefined) {
-          server.addFile(resolvePath(file.name, node.attributes.src), null, file.name)
+        if (node.attributes.src != undefined) {
+          addFile(resolvePath(file.name, node.attributes.src), file.name)
           return
         }
         scriptParsing = true
@@ -91,8 +94,8 @@
         from = to
         to = xml.length
       } else if (node.name.toLowerCase() == 'link') {
-        if (resolveFiles && node.attributes.rel == 'import' && node.attributes.href != undefined) {
-          server.addFile(resolvePath(file.name, node.attributes.href), null, file.name)
+        if (node.attributes.rel == 'import' && node.attributes.href != undefined) {
+          addFile(resolvePath(file.name, node.attributes.href), file.name)
         }
       }
     }
@@ -181,7 +184,8 @@
   tern.registerPlugin('browser-extension', function (server, options) {
     server._browserExtension = {
       scriptTags: (options && options.scriptTags) ? options.scriptTags : ['script'],
-      resolveFiles: options.resolveFiles || true
+      resolveFiles: options.resolveFiles || true,
+      fileExists: (typeof exports == 'object' && typeof module == 'object') ? require('fs').existsSync : function (_) { return true }
     }
     registerLints()
     return {passes: {
