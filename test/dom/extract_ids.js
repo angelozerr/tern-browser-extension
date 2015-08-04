@@ -9,6 +9,7 @@ exports['test elements ids'] = function() {
   var ids = document.ids, attr = ids["MyId"];
   assert.notEqual(attr, null);
   assert.equal(JSON.stringify(attr, null, ' '), JSON.stringify({
+    "type": "",
     "start": 15,
     "end": 19,
     "ownerElement": "div"
