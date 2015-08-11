@@ -7,7 +7,7 @@
 
 ## Use tern inside HTML
 
-Use tern inside HTML. The plugin extracts JavaScript code from scripts elements before creating the acorn AST.
+The plugin extracts JavaScript code from scripts tags, before creating the acorn AST.
 The plugin also resolves script tags with the `src` attribute and [HTML Imports](https://w3c.github.io/webcomponents/spec/imports/).
 
 ## Element ID
@@ -36,3 +36,12 @@ The plugin also resolves script tags with the `src` attribute and [HTML Imports]
 
 ![CodeMirror & QuerySelector validation](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_QuerySelectorValidation.png) 
 
+## Event type
+
+* get completion for Event type when document.addEventListener is used:
+
+![CodeMirror & Event type completion](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_EventTypeCompletions.png)
+
+* validate existing of Event type if the editor supports [tern-lint](https://github.com/angelozerr/tern-lint) : 
+
+![CodeMirror & Event type validation](https://github.com/angelozerr/tern-browser-extension/wiki/images/CodeMirror_EventTypeValidation.png) 

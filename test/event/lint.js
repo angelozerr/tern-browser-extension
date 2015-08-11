@@ -1,7 +1,7 @@
 var util = require('../util-lint')
 
-exports['test getElementById validation'] = function () {
-  // Unknown id 'XXX'
+exports['test addEventListener validation'] = function () {
+  // Unknown event 'XXX'
   util.assertLint("<html><input id='MyInput' /><script>document.addEventListener('XXX'</script>", {
     'messages': [{'message': "Unknown event 'XXX'",
       'from': 62,

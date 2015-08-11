@@ -340,6 +340,7 @@
       eventType(data['removeEventListener'])
       eventType(data['Node']['prototype']['addEventListener'])      
       eventType(data['Node']['prototype']['removeEventListener'])
+      eventType(data['Event']['prototype']['initEvent'])
     }
   }
 
@@ -380,6 +381,7 @@
         type = Object.create(type)
         type.doc = eventType['!doc']
         type.url = eventType['!url']        
+        type.origin = "browser-extension"
       } else if (expr.node.cssselectors == true) {
         var text = _file.text, wordStart = _pos, wordEnd = _pos
         while (wordStart && acorn.isIdentifierChar(text.charCodeAt(wordStart - 1))) --wordStart
@@ -600,9 +602,10 @@
           completions.push(rec)
 
           if (query.types || query.origins) {
-            //if (query.types) rec.type = getHTMLElementName(name)
+            if (query.types) rec.type = "string"
             if (query.docs && attrs[name]['!doc']) rec.doc = attrs[name]['!doc']
             if (query.urls && attrs[name]['!url']) rec.url = attrs[name]['!url']
+            if (query.origins) rec.origin = "browser-extension"
           }
         }
       }
@@ -1057,7 +1060,427 @@
     'compositionend': {
       '!doc': 'The compositionend event is fired when the composition of a passage of text has been completed or cancelled (fires with special characters that require a sequence of keys and other inputs such as speech recognition or word suggestion on mobile).',
       '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/compositionend'
-    }    
+    },     
+    'compositionstart': {
+      '!doc': 'The compositionstart event is fired when the composition of a passage of text is prepared (similar to keydown for a keyboard input, but fires with special characters that require a sequence of keys and other inputs such as speech recognition or word suggestion on mobile).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/compositionstart'
+    },     
+    'compositionupdate': {
+      '!doc': 'The compositionupdate event is fired when a character is added to a passage of text being composed (fires with special characters that require a sequence of keys and other inputs such as speech recognition or word suggestion on mobile).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/compositionupdate'
+    },     
+    'contextmenu': {
+      '!doc': 'The contextmenu event is fired when the right button of the mouse is clicked (before the context menu is displayed), or when the context menu key is pressed (in which case the context menu is displayed at the bottom left of the focused element, unless the element is a tree, in which case the context menu is displayed at the bottom left of the current row).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/contextmenu'
+    },     
+    'copy': {
+      '!doc': 'The copy event is fired when a selection has been added to the clipboard.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/copy'
+    },     
+    'cut': {
+      '!doc': 'The cut event is fired when a selection has been removed from the document and added to the clipboard.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/cut'
+    },     
+    'dblclick': {
+      '!doc': 'The dblclick event is fired when a pointing device button (usually a mouse button) is clicked twice on a single element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/dblclick'
+    },     
+    'devicelight': {
+      '!doc': 'The devicelight event is fired when fresh data is available from a light sensor.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/devicelight'
+    },     
+    'devicemotion': {
+      '!doc': 'The devicemotion event is fired at a regular interval and indicates the amount of physical force of acceleration the device is receiving at that time. It also provides information about the rate of rotation, if available.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/devicemotion'
+    },     
+    'deviceorientation': {
+      '!doc': 'The deviceorientation event is fired when fresh data is available from an orientation sensor about the current orientation of the device as compared to the Earth coordinate frame. This data is gathered from a magnetometer inside the device.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/deviceorientation'
+    },     
+    'deviceproximity': {
+      '!doc': 'The deviceproximity event is fired when fresh data is available from a proximity sensor.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/deviceproximity'
+    },     
+    'dischargingtimechange': {
+      '!doc': 'The dischargingtimechange event is fired when the dischargingTime attribute of the battery API has changed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/dischargingtimechange'
+    },     
+    'DOMContentLoaded': {
+      '!doc': 'The DOMContentLoaded event is fired when the initial HTML document has been completely loaded and parsed, without waiting for stylesheets, images, and subframes to finish loading. A very different event - load - should be used only to detect a fully-loaded page. It is an incredibly popular mistake for people to use load where DOMContentLoaded would be much more appropriate, so be cautious.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded'
+    },     
+    'downloading': {
+      '!doc': 'The downloading event is fired after checking for an application cache update, if the user agent has found an update and is fetching it, or is downloading the resources listed by the cache manifest for the first time.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/downloading'
+    },     
+    'drag': {
+      '!doc': 'The drag event is fired when an element or text selection is being dragged (every few hundred milliseconds).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/drag'
+    },     
+    'dragend': {
+      '!doc': 'The dragend event is fired when a drag operation is being ended (by releasing a mouse button or hitting the escape key).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/dragend'
+    },     
+    'dragenter': {
+      '!doc': 'The dragenter event is fired when a dragged element or text selection enters a valid drop target.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/dragenter'
+    },     
+    'dragleave': {
+      '!doc': 'The dragleave event is fired when a dragged element or text selection leaves a valid drop target.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/dragleave'
+    },     
+    'dragover': {
+      '!doc': 'The dragover event is fired when an element or text selection is being dragged over a valid drop target (every few hundred milliseconds).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/dragover'
+    },     
+    'dragstart': {
+      '!doc': 'The dragstart event is fired when the user starts dragging an element or text selection.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/dragstart'
+    },     
+    'drop': {
+      '!doc': 'The drop event is fired when an element or text selection is dropped on a valid drop target.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/drop'
+    },     
+    'durationchange': {
+      '!doc': 'The durationchange event is fired when the duration attribute has been updated.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/durationchange'
+    },
+    'emptied': {
+      '!doc': 'The emptied event is fired when the media has become empty; for example, this event is sent if the media has already been loaded (or partially loaded), and the load() method is called to reload it.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/emptied'
+    },
+    'ended': {
+      '!doc': 'The ended event is fired when playback has stopped because the end of the media was reached.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/ended'
+    },
+    'endEvent': {
+      '!doc': 'The endEvent event is fired when at the active end of the element is reached. Note that this event is not raised at the simple end of each repeat. This event may be raised both in the course of normal (i.e. scheduled or interactive) timeline play, as well as in the case that the element was ended with a DOM method.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/endEvent'
+    },     
+    'error': {
+      '!doc': 'The error event is fired when a resource failed to load.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/error'
+    },         
+    'focus': {
+      '!doc': 'The focus event is fired when an element has received focus. The main difference between this event and focusin is that only the latter bubbles.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/focus'
+    },     
+    'fullscreenchange': {
+      '!doc': 'The fullscreenchange event is fired when the browser is switched to/out-of fullscreen mode.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/fullscreenchange'
+    },     
+    'fullscreenerror': {
+      '!doc': 'The fullscreenerror event is fired when the browser cannot switch to fullscreen mode.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/fullscreenerror'
+    },     
+    'gampadconnected': {
+      '!doc': 'The gampadconnected event is fired when the browser detects that a gamepad has been connected or the first time a buttuon/axis of the gamepad is used.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/gampadconnected'
+    },     
+    'gampaddisconnected': {
+      '!doc': 'The gampaddisconnected event is fired when the browser detects that a gamepad has been disconnected.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/gampaddisconnected'
+    },     
+    'hashchange': {
+      '!doc': 'The hashchange event is fired when the fragment identifier of the URL has changed (the part of the URL that follows the # symbol, including the # symbol).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/hashchange'
+    },     
+    'input': {
+      '!doc': "The DOM input event is fired synchronously when the value of an <input> or <textarea> element is changed. Additionally, it fires on contenteditable editors when its contents are changed. In this case, the event target is the editing host element. If there are two or more elements which have contenteditable as true, 'editing host' is the nearest ancestor element whose parent isn't editable. Similarly, it's also fired on root element of designMode editors.",
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/input'
+    },     
+    'invalid': {
+      '!doc': "The invalid event is fired when a submittable element has been checked and doesn't satisfy its constraints. The validity of submittable elements is checked before submitting their owner form, or after the checkValidity() of the element or its owner form is called.",
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/invalid'
+    },     
+    'keydown': {
+      '!doc': 'The keydown event is fired when a key is pressed down.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/keydown'
+    },     
+    'keypress': {
+      '!doc': 'The keypress event is fired when a key is pressed down and that key normally produces a character value (use input instead).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/keypress'
+    },     
+    'keyup': {
+      '!doc': 'The keyup event is fired when a key is released.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/keyup'
+    },     
+    'levelchange': {
+      '!doc': 'The levelchange event is fired when the level attribute of the battery API has changed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/levelchange'
+    },     
+    'load': {
+      '!doc': 'The load event is fired when a resource and its dependent resources have finished loading.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/load'
+    },     
+    'loadeddata': {
+      '!doc': 'The loadeddata event is fired when the first frame of the media has finished loading.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/loadeddata'
+    },     
+    'loadend': {
+      '!doc': 'The loadend event is fired when progression has stopped (after "error", "abort" or "load" have been dispatched).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/loadend'
+    },     
+    'loadstart': {
+      '!doc': 'The loadstart event is fired when progress has begun.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/loadstart'
+    },     
+    'message': {
+      '!doc': 'The message handler is executed when data is received through a websocket.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/message_websocket'
+    },     
+    'mousedown': {
+      '!doc': 'The mousedown event is fired when a pointing device button (usually a mouse button) is pressed on an element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/mousedown'
+    },     
+    'mouseenter': {
+      '!doc': 'The mouseenter event is fired when a pointing device (usually a mouse) is moved over the element that has the listener attached.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/mouseenter'
+    },     
+    'mouseleave': {
+      '!doc': 'The mouseleave event is fired when a pointing device (usually a mouse) is moved off the element that has the listener attached.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/mouseleave'
+    },     
+    'mousemove': {
+      '!doc': 'The mousemove event is fired when a pointing device (usually a mouse) is moved while over an element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/mousemove'
+    },     
+    'mouseout': {
+      '!doc': 'The mouseout event is fired when a pointing device (usually a mouse) is moved off the element that has the listener attached or off one of its children.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/mouseout'
+    },     
+    'mouseover': {
+      '!doc': 'The mouseover event is fired when a pointing device is moved onto the element that has the listener attached or onto one of its children.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/mouseover'
+    },     
+    'mouseup': {
+      '!doc': 'The mouseup event is fired when a pointing device button (usually a mouse button) is released over an element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/mouseup'
+    },     
+    'noupdate': {
+      '!doc': "The noupdate event is fired after checking for an application cache update, if the manifest hasn't changed.",
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/noupdate'
+    },     
+    'obsolete': {
+      '!doc': 'The obsolete event is fired when the manifest was found to have become a 404 or 410 page, so the application cache is being deleted.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/obsolete'
+    },     
+    'offline': {
+      '!doc': 'The offline event is fired when the browser has lost access to the network and the value of navigator.onLine switched to false.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/offline'
+    },     
+    'online': {
+      '!doc': 'The online event is fired when the browser has gained access to the network and the value of navigator.onLine switched to true.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/online'
+    },     
+    'open': {
+      '!doc': 'The open handler is executed when a connection with a websocket is opened.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/open_websocket'
+    },     
+    'orientationchange': {
+      '!doc': 'The orientationchange event is fired when the orientation of the device has changed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/orientationchange'
+    },     
+    'pagehide': {
+      '!doc': 'The pagehide event is fired when a session history entry is being traversed from.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/pagehide'
+    },     
+    'pageshow': {
+      '!doc': 'The pageshow event is fired when a session history entry is being traversed to. (This includes back/forward as well as initial page-showing after the onload event.)',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/pageshow'
+    },     
+    'paste': {
+      '!doc': 'The paste event is fired when a selection has been pasted from the clipboard to the document.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/paste'
+    },     
+    'pause': {
+      '!doc': 'The pause event is fired when playback has been paused.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/pause'
+    },     
+    'pointerlockchange': {
+      '!doc': 'The pointerlockchange event is fired when the pointer is locked/unlocked.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/pointerlockchange'
+    },     
+    'pointerlockerror': {
+      '!doc': 'The pointerlockerror event is fired when locking the pointer failed (for technical reasons or because the permission was denied).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/pointerlockerror'
+    },     
+    'play': {
+      '!doc': 'The play event is fired when playback has begun.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/play'
+    },     
+    'playing': {
+      '!doc': 'The playing event is fired when playback is ready to start after having been paused or delayed due to lack of data.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/playing'
+    },     
+    'popstate': {
+      '!doc': "The popstate event is fired when the active history entry changes. If the history entry being activated was created by a call to history.pushState() or was affected by a call to history.replaceState(), the popstate event's state property contains a copy of the history entry's state object.",
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/popstate'
+    },     
+    'progress': {
+      '!doc': 'The progress event is fired to indicate that an operation is in progress.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/progress'
+    },     
+    'ratechange': {
+      '!doc': 'The ratechange event is fired when the playback rate has changed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/ratechange'
+    },     
+    'readystatechange': {
+      '!doc': 'The readystatechange event is fired when the readyState attribute of a document has changed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/readystatechange'
+    },     
+    'repeatEvent': {
+      '!doc': 'The repeatEvent event is fired when the element local timeline repeats. It will be raised each time the element repeats, after the first iteration. Associated with the repeat event is an integer that indicates which repeat iteration is beginning. The value is a 0-based integer, but the repeat event is not raised for the first iteration and so the observed values will be >= 1.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/compositionend'
+    },     
+    'reset': {
+      '!doc': 'The reset event is fired when a form is reset.The reset event is fired when a form is reset.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/reset'
+    },     
+    'resize': {
+      '!doc': 'The resize event is fired when the document view has been resized.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/resize'
+    },     
+    'scroll': {
+      '!doc': 'The scroll event is fired when the document view or an element has been scrolled.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/scroll'
+    },     
+    'seeked': {
+      '!doc': 'The seeked event is fired when a seek operation completed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/seeked'
+    },     
+    'seeking': {
+      '!doc': 'The seeking event is fired when a seek operation began.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/seeking'
+    },     
+    'select': {
+      '!doc': 'The select event is fired when some text is being selected. The event might not be available for all elements in all languages. For example, in [HTML5],  select events can be dispatched only on form input and textarea elements.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/select'
+    },     
+    'show': {
+      '!doc': 'The show event is fired when a contextmenu event was fired on/bubbled to an element that has a contextmenu attribute.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/show'
+    },     
+    'stalled': {
+      '!doc': 'The stalled event is fired when the user agent is trying to fetch media data, but data is unexpectedly not forthcoming.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/stalled'
+    },     
+    'storage': {
+      '!doc': 'The storage event is fired when a storage area (localStorage or sessionStorage) has been modified. See Web Storage API for more information.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/storage'
+    },         
+    'submit': {
+      '!doc': 'The submit event is fired when a form is submitted. Note that submit is fired only on the form element, not the button or submit input. (Forms are submitted, not buttons.)',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/submit'
+    },     
+    'success': {
+      '!doc': 'The success handler is executed when a request succeed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/success'
+    },     
+    'suspend': {
+      '!doc': 'The suspend event is fired when media data loading has been suspended.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/suspend'
+    },     
+    'SVGAbort': {
+      '!doc': 'The SVGAbort event is fired when page loading is stopped before an element has been allowed to load completely.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/SVGAbort'
+    },     
+    'SVGError': {
+      '!doc': 'The SVGError event is fired when an element does not load properly or when an error occurs during script execution.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/SVGError'
+    },     
+    'SVGLoad': {
+      '!doc': 'The SVGLoad event is fired when the user agent has fully parsed the element and its descendants and is ready to act appropriately upon that element, such as being ready to render the element to the target device. Referenced external resources that are required must be loaded, parsed and ready to render before the event is triggered. Optional external resources are not required to be ready for the event to be triggered.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/SVGLoad'
+    },     
+    'SVGResize': {
+      '!doc': 'The SVGResize event is fired when a document view is being resized. This event is only applicable to outermost SVG elements and is dispatched after the resize operation has taken place. The target of the event is the <svg> element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/SVGResize'
+    },     
+    'SVGScroll': {
+      '!doc': 'The SVGScroll event is fired when a document view is being shifted along the X or Y or both axis, either through a direct user interaction or any change on the currentTranslate property available on <svg> interface. This event is only applicable to outermost svg elements and is dispatched after the shift modification has taken place. The target of the event is the <svg> element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/SVGScroll'
+    },     
+    'SVGUnload': {
+      '!doc': 'The SVGUnload event is fired when the DOM implementation removes a document from a window or frame.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/SVGUnload'
+    },     
+    'SVGZoom': {
+      '!doc': 'The SVGZoom event is fired when the zoom level of a document view is being changed, either through a direct user interaction or any change to the currentScale property available on the <svg> element interface. This event is only applicable to outermost svg elements and is dispatched after the zoom level modification has taken place. The target of the event is the <svg> element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/SVGZoom'
+    },     
+    'timeout': {
+      '!doc': '',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/timeout'
+    },     
+    'timeupdate': {
+      '!doc': 'The timeupdate event is fired when the time indicated by the currentTime attribute has been updated.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/timeupdate'
+    },     
+    'touchcancel': {
+      '!doc': 'The touchcancel event is fired when a touch point has been disrupted in an implementation-specific manner (too many touch points for example).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/touchcancel'
+    },     
+    'touchend': {
+      '!doc': 'The touchend event is fired when a touch point is removed from the touch surface.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/touchend'
+    },     
+    'touchenter': {
+      '!doc': 'The touchenter event is fired when a touch point is moved onto the interactive area of an element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/touchenter'
+    },     
+    'touchleave': {
+      '!doc': 'The touchleave event is fired when a touch point is moved off the interactive area of an element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/touchleave'
+    },     
+    'touchmove': {
+      '!doc': 'The touchmove event is fired when a touch point is moved along the touch surface.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/touchmove'
+    },     
+    'touchstart': {
+      '!doc': 'The touchstart event is fired when a touch point is placed on the touch surface.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/touchstart'
+    },     
+    'transitionend': {
+      '!doc': 'The transitionend event is fired when a CSS transition has completed. In the case where a transition is removed before completion, such as if the transition-property is removed, then the event will not fire. The event will also not fire if the animated element becomes display: none before the transition fully completes.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/transitionend'
+    },     
+    'unload': {
+      '!doc': 'The unload event is fired when the document or a child resource is being unloaded.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/unload'
+    },     
+    'updateready': {
+      '!doc': 'The updateready event is fired when the resources listed in the application cache manifest have been newly redownloaded, and the script can use swapCache() to switch to the new cache.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/updateready'
+    },     
+    'upgradeneeded': {
+      '!doc': 'The upgradeneeded handler is executed when an attempt was made to open a database with a version number higher than its current version.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/upgradeneeded'
+    },     
+    'userproximity': {
+      '!doc': 'The userproximity event is fired when fresh data is available from a proximity sensor (indicates whether the nearby object is near the device or not).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/userproximity'
+    },     
+    'versionchange': {
+      '!doc': 'The versionchange handler is executed when a versionchange transaction completed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/versionchange'
+    },     
+    'visibilitychange': {
+      '!doc': 'The visibilitychange event is fired when the content of a tab has become visible or has been hidden.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/visibilitychange'
+    },     
+    'volumechange': {
+      '!doc': 'The volumechange event is fired when the volume has changed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/volumechange'
+    },     
+    'waiting': {
+      '!doc': 'The waiting event is fired when playback has stopped because of a temporary lack of data.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/waiting'
+    },     
+    'wheel': {
+      '!doc': 'The wheel event is fired when a wheel button of a pointing device (usually a mouse) is rotated. This event replaces the non-standard deprecated mousewheel event.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/wheel'
+    }     
   }
   
 })
