@@ -1,4 +1,4 @@
-;(function (root, mod) {
+(function (root, mod) {
   if (typeof exports == 'object' && typeof module == 'object') // CommonJS
     return mod(exports, require('tern/lib/infer'), require('tern/lib/tern'),
       require('acorn'), require('sax'), require('csslint').CSSLint)
@@ -18,7 +18,8 @@
   }
 
   var defaultRules = {
-    'UnknownElementId': {'severity': 'warning'}
+    'UnknownElementId': {'severity': 'warning'},
+    'UnknownEventType': {'severity': 'warning'}
   }
 
   var startsWith = function (s, searchString, position) {
@@ -179,6 +180,16 @@
     }
   })
 
+  infer.registerFunction('Browser_eventType', function (argN) {
+    return function (self, args, argNodes) {
+      if (!argNodes || !argNodes.length || argNodes[argN].type != 'Literal' || typeof argNodes[argN].value != 'string') {
+        return
+      }
+      argNodes[argN].eventType = events[argNodes[argN].value]
+      argNodes[argN].eventTypable = true
+    }
+  })
+  
   // Plugin
 
   tern.registerPlugin('browser-extension', function (server, options) {
@@ -201,6 +212,14 @@
   function registerLints () {
     if (!tern.registerLint) return
 
+    // validate document.addEventListener
+    tern.registerLint('Browser_validateEventType', function (node, addMessage, getRule) {
+      var argNode = node.arguments[0]
+      if (argNode && !argNode.eventType) {
+        addMessage(argNode, "Unknown event '" + argNode.value + "'", defaultRules.UnknownEventType.severity)
+      }
+    })
+    
     // validate document.getElementById
     tern.registerLint('Browser_validateElementId', function (node, addMessage, getRule) {
       var argNode = node.arguments[0]
@@ -293,6 +312,11 @@
 
   // Pre load def : implementation to override getElementById an dcreateElement !type
 
+  function eventType(elt) {
+    elt['!effects'] = ['custom Browser_eventType 0']
+    elt['!data'] = {'!lint': 'Browser_validateEventType'}
+  }
+  
   function preLoadDef (data) {
     var cx = infer.cx()
     if (data['!name'] == 'browser') {
@@ -311,6 +335,11 @@
       var querySelectorAll = data['Element']['prototype']['querySelectorAll']
       querySelectorAll['!effects'] = ['custom Browser_querySelector 0']
       querySelectorAll['!data'] = {'!lint': 'Browser_validateCSSSelectors'}
+      // Add Document#addEventListener/removeListener !effects
+      eventType(data['addEventListener'])      
+      eventType(data['removeEventListener'])
+      eventType(data['Node']['prototype']['addEventListener'])      
+      eventType(data['Node']['prototype']['removeEventListener'])
     }
   }
 
@@ -346,6 +375,11 @@
       var attr = null
       if (!!expr.node.dom) {
         attr = expr.node.dom
+      } else if (!!expr.node.eventType) {
+        var eventType = expr.node.eventType
+        type = Object.create(type)
+        type.doc = eventType['!doc']
+        type.url = eventType['!url']        
       } else if (expr.node.cssselectors == true) {
         var text = _file.text, wordStart = _pos, wordEnd = _pos
         while (wordStart && acorn.isIdentifierChar(text.charCodeAt(wordStart - 1))) --wordStart
@@ -427,10 +461,14 @@
         complete: completeDOMElementIds,
         expr: false
       }
+    if (argNode.eventTypable) return {
+        complete: completeEventTypes,
+        expr: false
+      }    
     if (argNode.cssselectors) return {
         complete: completeCSSSelectors,
         expr: true
-      }
+      }    
   }
 
   function completeElementIds (completions, query, file, word, withHash, addHash) {
@@ -544,6 +582,37 @@
     }
   }
 
+  function completeEventTypes (completions, query, file, word) {
+    var cx = infer.cx(), server = cx.parent, dom = file.dom, attrs = data
+    var wrapAsObjs = query.types || query.depths || query.docs || query.urls || query.origins
+
+    function maybeSet (obj, prop, val) {
+      if (val != null) obj[prop] = val
+    }
+
+    function gather (attrs) {
+      for (var name in attrs) {
+        if (!name) continue
+        if (name &&
+          !(query.filter !== false && word &&
+          (query.caseInsensitive ? name.toLowerCase() : name).indexOf(word) !== 0)) {
+          var rec = wrapAsObjs ? {name: name} : name
+          completions.push(rec)
+
+          if (query.types || query.origins) {
+            //if (query.types) rec.type = getHTMLElementName(name)
+            if (query.docs && attrs[name]['!doc']) rec.doc = attrs[name]['!doc']
+            if (query.urls && attrs[name]['!url']) rec.url = attrs[name]['!url']
+          }
+        }
+      }
+    }
+
+    if (query.caseInsensitive) word = word.toLowerCase()
+    gather(events)
+    return completions
+  }
+  
   var langs = 'ab aa af ak sq am ar an hy as av ae ay az bm ba eu be bn bh bi bs br bg my ca ch ce ny zh cv kw co cr hr cs da dv nl dz en eo et ee fo fj fi fr ff gl ka de el gn gu ht ha he hz hi ho hu ia id ie ga ig ik io is it iu ja jv kl kn kr ks kk km ki rw ky kv kg ko ku kj la lb lg li ln lo lt lu lv gv mk mg ms ml mt mi mr mh mn na nv nb nd ne ng nn no ii nr oc oj cu om or os pa pi fa pl ps pt qu rm rn ro ru sa sc sd se sm sg sr gd sn si sk sl so st es su sw ss sv ta te tg th ti bo tk tl tn to tr ts tt tw ty ug uk ur uz ve vi vo wa cy wo fy xh yi yo za zu'.split(' ')
   var targets = ['_blank', '_self', '_top', '_parent']
   var charsets = ['ascii', 'utf-8', 'utf-16', 'latin1', 'latin1']
@@ -897,4 +966,98 @@
       '!url': 'http://www.w3.org/TR/css3-selectors/#the-user-action-pseudo-classes-hover-act'
     }
   }
+  
+  // See https://developer.mozilla.org/docs/Web/Events
+  
+  var events = {
+    'abort': {
+      '!doc': 'The abort event is fired when the loading of a resource has been aborted.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/abort'
+    },
+    'afterprint': {
+      '!doc': 'The afterprint event is fired after the associated document has started printing or the print preview has been closed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/afterprint'
+    },
+    'animationend': {
+      '!doc': 'The animationend event is fired when a CSS animation has completed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/animationend'
+    },
+    'animationiteration': {
+      '!doc': 'The animationend event is fired when an iteration of an animation ends. This event does not occur for animations with an animation-iteration-count of one.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/animationiteration'
+    },
+    'animationstart': {
+      '!doc': 'The animationstart event is fired when a CSS animation has started. If there is an animation-delay then this event will fire once the delay period has expired. A negative delay will cause the event to fire with an elapsedTime equal to the absolute value of the delay.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/animationstart'
+    },
+    'audioprocess': {
+      '!doc': 'The audioprocess event is fired when an input buffer of a Web Audio API ScriptProcessorNode is ready to be processed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/audioprocess'
+    },
+    'beforeprint': {
+      '!doc': 'The beforeprint event is fired when the associated document is about to be printed or previewed for printing.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/beforeprint'
+    },  
+    'beforeunload': {
+      '!doc': 'The beforeunload event is fired when the window, the document and its resources are about to be unloaded.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/beforeunload'
+    },    
+    'beginEvent': {
+      '!doc': 'The beginEvent event is fired when the element local timeline begins to play. It will be raised each time the element begins the active duration (i.e., when it restarts, but not when it repeats). It may be raised both in the course of normal (i.e. scheduled or interactive) timeline play, as well as in the case that the element was begun with a DOM method.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/beginEvent'
+    },    
+    'blocked': {
+      '!doc': 'The blocked handler is executed when an open connection to a database is blocking a versionchange transaction on the same database.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/blocked'
+    },    
+    'blur': {
+      '!doc': 'The blur event is fired when an element has lost focus. The main difference between this event and focusout is that only the latter bubbles.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/blur'
+    },    
+    'cached': {
+      '!doc': 'The cached event is fired when the resources listed in the application cache manifest have been downloaded, and the application is now cached.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/cached'
+    },    
+    'canplay': {
+      '!doc': 'The canplay event is fired when the user agent can play the media, but estimates that not enough data has been loaded to play the media up to its end without having to stop for further buffering of content.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/canplay'
+    },    
+    'canplaythrough': {
+      '!doc': 'The canplaythrough event is fired when the user agent can play the media, and estimates that enough data has been loaded to play the media up to its end without having to stop for further buffering of content.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/canplaythrough'
+    },    
+    'change': {
+      '!doc': "The change event is fired for <input>, <select>, and <textarea> elements when a change to the element's value is committed by the user. Unlike the input event, the change event is not necessarily fired for each change to an element's value.",
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/change'
+    },    
+    'chargingchange': {
+      '!doc': 'The chargingchange event is fired when the charging attribute of the battery API has changed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/chargingchange'
+    },    
+    'chargingtimechange': {
+      '!doc': 'The chargingtimechange event is fired when the chargingTime attribute of the battery API has changed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/chargingtimechange'
+    },
+    'checking': {
+      '!doc': 'The checking event is fired when the user agent is checking for an update, or attempting to download the cache manifest for the first time.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/checking'
+    },     
+    'click': {
+      '!doc': 'The click event is fired when a pointing device button (usually a mouse button) is pressed and released on a single element.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/click'
+    },     
+    'close': {
+      '!doc': 'The close handler is executed when a connection with a websocket is closed.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/close'
+    },     
+    'complete': {
+      '!doc': 'The complete event is fired when the rendering of an OfflineAudioContext is terminated.',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/complete'
+    },     
+    'compositionend': {
+      '!doc': 'The compositionend event is fired when the composition of a passage of text has been completed or cancelled (fires with special characters that require a sequence of keys and other inputs such as speech recognition or word suggestion on mobile).',
+      '!url': 'https://developer.mozilla.org/en-US/docs/Web/Events/compositionend'
+    }    
+  }
+  
 })

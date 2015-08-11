@@ -1,7 +1,7 @@
 {
   "name": "tern-browser-extension",
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "browser-extension.js",
   "author": "Angelo ZERR <angelo.zerr@gmail.com>",
   "description": "A Tern plugin adding advanced features for Browser.",
