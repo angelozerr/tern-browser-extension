@@ -13,18 +13,18 @@
     "test": "node ./test/all.js"
   },
   "dependencies": {
-    "tern": "^0.14.0",
-    "acorn": "^2.3.0",  
+    "tern": "^0.15.0",
+    "acorn": "^2.4.0",  
     "sax": ">=1.1.1",
     "csslint": "0.10.0",
-    "tern-lint": "0.3.0"
+    "tern-lint": "^0.5.0"
   },
   "devDependencies": {
     "sinon": "^1.15.4",
     "test": ">=0.0.5",
-  	"codemirror": "^5.6.0",
-  	"codemirror-extension": "^0.1.0",
-  	"codemirror-javascript": "^0.1.0"
+    "codemirror": "^5.7.0",
+    "codemirror-extension": "^0.1.0",
+    "codemirror-javascript": "^0.1.0"
   },
   "keywords": [
     "tern",
